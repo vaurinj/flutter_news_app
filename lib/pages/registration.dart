@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const MyApp());
@@ -29,17 +30,51 @@ class RegistrationPage extends StatefulWidget {
 }
 
 class _RegistrationPageState  extends State<RegistrationPage>{
+  final _formKey = GlobalKey<FormState>(); // Ключ форми
+
   final TextEditingController _loginController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-    final TextEditingController _passwordcheckController = TextEditingController();
+  final TextEditingController _passwordcheckController = TextEditingController();
 
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Email cannot be empty';
+    } 
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+      return 'Enter a valid email';
+    }
+    return null;
+  }
 
-  void _login() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      // ignore: lines_longer_than_80_chars
-      const SnackBar(content: Text('We`re sorry, registrtion process is in development now'))
-    );
+  String? _validatePassword(String? value) {
+    if (value == null || value.length < 6) {
+      return 'Password must be at least 6 characters';
+    }
+    return null;
+  }
+
+   String? _validatePasswordMatch(String? value) {
+    if (value != _passwordController.text) {
+      return 'Passwords do not match';
+    }
+    return null;
+  }
+
+  Future<void> _saveUserData() async  {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('login', _loginController.text);
+    await prefs.setString('email', _emailController.text);
+    await prefs.setString('password', _passwordController.text);
+  } 
+
+  void _register() async {
+    if (_formKey.currentState!.validate()) {
+      await _saveUserData(); // Зберігаємо дані
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Registration successful!')),
+      );
+    }
   }
  
    @override
@@ -51,6 +86,7 @@ class _RegistrationPageState  extends State<RegistrationPage>{
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Form(
+                key: _formKey,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
@@ -74,8 +110,12 @@ class _RegistrationPageState  extends State<RegistrationPage>{
                         hintText: 'Enter your login',
                         border: OutlineInputBorder(),
                       ),
+                      validator: (value) => value!.isEmpty
+                        ? 'Login cannot be empty'
+                        : null,
+                      ),
                     ),
-                    ),
+                    
                     const SizedBox(height: 20),
                     SizedBox(
                       width: 400,
@@ -86,6 +126,7 @@ class _RegistrationPageState  extends State<RegistrationPage>{
                         hintText: 'Enter your Email',
                         border: OutlineInputBorder(),
                       ),
+                      validator: _validateEmail,
                     ),
                     ),
                     const SizedBox(height: 20),
@@ -99,6 +140,7 @@ class _RegistrationPageState  extends State<RegistrationPage>{
                         border: OutlineInputBorder(),
                       ),
                       obscureText: true,
+                      validator: _validatePassword,
                     ),
                     ),
                     const SizedBox(height: 20),
@@ -112,11 +154,12 @@ class _RegistrationPageState  extends State<RegistrationPage>{
                         border: OutlineInputBorder(),
                       ),
                       obscureText: true,
+                      validator: _validatePasswordMatch
                     ),
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton(
-                      onPressed: _login,
+                      onPressed: _register,
                       child: const Text('Register an account'),
                     ),
                   ],

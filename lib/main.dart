@@ -7,82 +7,124 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Login Page',
-      theme: ThemeData(       
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 255, 0, 234)),
+      title: 'Counter',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 255, 0, 162)),
         useMaterial3: true,
       ),
-       home: LoginPage(),
+      home: const MyHomePage(title: 'Flutter press counter'),
     );
   }
 }
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({required this.title, super.key});
+
+  final String title;
 
   @override
-  _LoginPageState createState() => _LoginPageState();
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _LoginPageState  extends State<LoginPage>{
-  final TextEditingController _loginController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+class _MyHomePageState extends State<MyHomePage> {
+  int _counter = 0;
+  final TextEditingController _controller = TextEditingController();
+  String _errorMessage = '';
 
-  void _login() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      // ignore: lines_longer_than_80_chars
-      const SnackBar(content: Text('We`re sorry, login process is in development now'))
-    );
+    void _incrementCounter() {
+      setState(() {
+        _counter++;
+     });
+   }
+
+  void _validateInput() {
+    setState(() 
+    {
+      final String inputText = _controller.text.trim();
+      if (inputText.isEmpty) {
+        _errorMessage = ':3';
+      }
+      else {
+        _errorMessage = 'it`s not number you know?';
+      } 
+      
+      if (inputText.toLowerCase() == 'avada kedavra') {
+        _counter = 0;
+        _errorMessage = 'oops...';
+         _controller.clear();
+      }
+
+      final int? number = int.tryParse(inputText);
+      if (number != null) {
+        _counter += number;
+        _errorMessage  = '';
+        _controller.clear();
+      }     
+                 
+    });
+    
   }
- 
- @override
+
+  @override
   Widget build(BuildContext context) {
+   
     return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Form(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Login',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 20),
-                TextFormField(
-                  controller: _loginController,
-                  decoration: const InputDecoration(
-                    labelText: 'Login',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
-                    border: OutlineInputBorder(),
-                    
-                  ),
-                  obscureText: true,
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                   onPressed: _login,
-                  child: const Text('Log in'),
-                  ),
-              ],
+      appBar: AppBar(     
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,       
+        title: Text(widget.title),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          
+          children: <Widget>[
+            const Text(
+              'You have pushed the button this many times:',
             ),
-          ),
+            Text(
+              '$_counter',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            const SizedBox(height: 20),
+
+            // Text Field with validation
+         Center(child: SizedBox(
+            width: 500,
+            child:TextField(
+              controller: _controller,
+              decoration: InputDecoration(
+                hintText: 'You can enter number here',
+                errorText: _errorMessage.isEmpty ? null : _errorMessage,
+                border: const OutlineInputBorder(),
+                suffixIcon: IconButton(
+                  onPressed:  _controller.clear,
+                  icon: const Icon(Icons.clear),
+                  ),
+
+              ),
+              
+            ),
+          ),  
+         ),  
+            const SizedBox(height: 20),
+           
+           ElevatedButton(
+              onPressed: _validateInput,
+              child: const Text('Submit'),
+            ),
+          ],
         ),
-        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _incrementCounter,
+        tooltip: 'Increment',
+        child: const Icon(Icons.add),
+      ), 
     );
   }
-  
 }
